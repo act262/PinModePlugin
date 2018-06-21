@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.jfz.library">
+
+    <application>
+        <!-- library lib2 main start -->
+        <activity android:name=".lib2.Lib2Activity" />
+
+        <meta-data
+            android:name="lib2_meta"
+            android:value="data" />
+
+        <!-- library lib2 main end -->
+    </application>
+</manifest>
