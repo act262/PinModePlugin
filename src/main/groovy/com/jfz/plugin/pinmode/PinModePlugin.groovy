@@ -127,15 +127,28 @@ class PinModePlugin extends AndroidBasePlugin {
 
         println "end merge..."
 
-        if (MergingReport.Result.SUCCESS) {
-            XmlDocument xmlDocument = mergingReport.getMergedXmlDocument(MergingReport.MergedManifestKind.MERGED)
-            try {
-                String annotatedDocument = mergingReport.getActions().blame(xmlDocument)
-                logger.verbose(annotatedDocument)
-            } catch (Exception e) {
-                logger.error(e, "cannot print resulting xml")
-            }
-            save(xmlDocument, mainManifest)
+        println(mergingReport.reportString)
+
+        switch (mergingReport.result) {
+            case MergingReport.Result.WARNING:
+                mergingReport.log(logger)
+                break
+
+            case MergingReport.Result.SUCCESS:
+                XmlDocument xmlDocument = mergingReport.getMergedXmlDocument(MergingReport.MergedManifestKind.MERGED)
+                try {
+                    String annotatedDocument = mergingReport.getActions().blame(xmlDocument)
+
+                    logger.verbose(annotatedDocument)
+                } catch (Exception e) {
+                    logger.error(e, "cannot print resulting xml")
+                }
+                save(xmlDocument, mainManifest)
+                break
+
+            case MergingReport.Result.ERROR:
+            default:
+                throw new RuntimeException(mergingReport.getLoggingRecords())
         }
     }
 
