@@ -1,4 +1,4 @@
-package com.jfz.pinmode
+package com.jfz.plugin.pinmode
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
