@@ -6,8 +6,12 @@ buildscript {
     }
 }
 
+plugins {
+    id 'com.gradle.plugin-publish' version '0.9.7'
+}
+
 group 'com.jfz.plugin'
-version '1.0.0'
+version '0.0.3'
 
 apply plugin: 'groovy'
 
@@ -22,7 +26,7 @@ dependencies {
     compileOnly 'com.android.tools.build:gradle:3.1.1'
 }
 
-/* =============  publish  ========= */
+/* =============  publish to mavenLocal ============= */
 apply plugin: 'maven-publish'
 publishing {
     publications {
@@ -31,3 +35,21 @@ publishing {
         }
     }
 }
+
+/* =============== publish to gradle plugin portal ============== */
+pluginBundle {
+    website = 'https://github.com/act262/PinModePlugin'
+    vcsUrl = 'https://github.com/act262/PinModePlugin'
+
+    plugins {
+        gradlePortalPlugin {
+            id = 'com.jfz.plugin.pin'
+            displayName = 'pin-plugin'
+            description = 'The plugin can use multiple AndroidSourceSet'
+            tags = ['android', 'gradle', 'AndroidSourceSet', 'AndroidManifest']
+//            version = '0.0.3'
+        }
+    }
+}
+
+/* TODO: publish to jcenter? */
