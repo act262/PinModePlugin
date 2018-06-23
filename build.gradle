@@ -2,18 +2,14 @@ buildscript {
     repositories {
         jcenter()
     }
-    dependencies {
-    }
 }
 
 plugins {
-    id 'com.gradle.plugin-publish' version '0.9.7'
+    id "com.jfrog.bintray" version "1.8.1"
 }
 
-group 'com.jfz.plugin'
-version '0.0.3'
-
 apply plugin: 'groovy'
+apply from: 'bintray.gradle'
 
 repositories {
     google()
@@ -25,31 +21,3 @@ dependencies {
     compileOnly localGroovy()
     compileOnly 'com.android.tools.build:gradle:3.1.1'
 }
-
-/* =============  publish to mavenLocal ============= */
-apply plugin: 'maven-publish'
-publishing {
-    publications {
-        plugin(MavenPublication) {
-            from components.java
-        }
-    }
-}
-
-/* =============== publish to gradle plugin portal ============== */
-pluginBundle {
-    website = 'https://github.com/act262/PinModePlugin'
-    vcsUrl = 'https://github.com/act262/PinModePlugin'
-
-    plugins {
-        gradlePortalPlugin {
-            id = 'com.jfz.plugin.pin'
-            displayName = 'pin-plugin'
-            description = 'The plugin can use multiple AndroidSourceSet'
-            tags = ['android', 'gradle', 'AndroidSourceSet', 'AndroidManifest']
-//            version = '0.0.3'
-        }
-    }
-}
-
-/* TODO: publish to jcenter? */

@@ -1,0 +1,45 @@
+group 'com.jfz.plugin'
+version '0.0.1'
+
+def artifactName = 'pin-plugin'
+
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+/* =============  publish to mavenLocal ============= */
+publishing {
+    publications {
+        plugin(MavenPublication) {
+            from components.java
+            groupId project.group
+            artifactId artifactName
+            version project.version
+        }
+    }
+}
+
+/* ==============  publish to bintray  =============== */
+bintray {
+    user = property('BINTRAY_USER')
+    key = property('BINTRAY_KEY')
+
+    pkg {
+        repo = 'maven'
+        name = artifactName
+        desc = 'The plugin can use multiple AndroidSourceSet'
+        licenses = ['Apache-2.0']
+        websiteUrl = 'https://github.com/act262/PinModePlugin'
+        vcsUrl = 'https://github.com/act262/PinModePlugin'
+
+        version {
+            name = project.version
+            desc = 'preview'
+            released = new Date()
+            attributes = ['gradle-plugin': 'android']
+        }
+    }
+
+    publications = ['plugin']
+    publish = true
+    override = true
+}
