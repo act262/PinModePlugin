@@ -4,15 +4,13 @@
 
     <application>
 
-        <!-- app1 main start -->
-
-        <activity android:name=".app1.App1Activity" />
+        <!-- app src flavor1 start -->
 
         <meta-data
-            android:name="app1-main"
-            android:value="app1-main" />
+            android:name="app src flavor1"
+            android:value="app src flavor1" />
 
-        <!-- app1 main end -->
+        <!-- app src flavor1 end -->
 
     </application>
 

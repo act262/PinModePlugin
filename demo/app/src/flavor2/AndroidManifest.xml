@@ -10,15 +10,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!-- app2 src main start -->
-
-        <activity android:name=".app2.App2Activity" />
+        <!-- app src flavor2 start -->
 
         <meta-data
-            android:name="app2-src-main"
-            android:value="app2-src-main" />
+            android:name="app src flavor2"
+            android:value="app src flavor2" />
 
-        <!-- app2 src main end -->
+        <!-- app src flavor2 end -->
 
     </application>
 

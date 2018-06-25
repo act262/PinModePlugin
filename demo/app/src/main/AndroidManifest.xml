@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <!-- app start -->
+        <!-- app src main start -->
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -27,10 +27,10 @@
         </activity>
 
         <meta-data
-            android:name="app_meta"
+            android:name="app-src-main"
             android:value="app" />
 
-        <!-- app end -->
+        <!-- app src main end -->
 
     </application>
 
