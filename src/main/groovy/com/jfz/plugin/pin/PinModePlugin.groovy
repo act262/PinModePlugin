@@ -1,10 +1,9 @@
 package com.jfz.plugin.pin
 
-import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
-import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.AndroidBasePlugin
 import com.android.build.gradle.api.AndroidSourceSet
+import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import com.android.manifmerger.ManifestMerger2
 import com.android.manifmerger.ManifestMerger2.Invoker
@@ -16,22 +15,46 @@ import com.android.utils.StdLogger
 import com.android.utils.StdLogger.Level
 import com.google.common.base.Charsets
 import com.google.common.io.Files
+import com.jfz.plugin.pin.util.AndroidUtils
 import org.gradle.api.Project
+import org.gradle.api.logging.Logger
 import org.jetbrains.annotations.NotNull
 
 // multiple source arch
 class PinModePlugin extends AndroidBasePlugin {
 
+    private Project project
+
     @Override
     void apply(@NotNull Project project) {
-        if (!isAndroidProject(project)) {
-            println "No Android Project"
+        this.project = project
+        Logger logger = project.logger
+
+        if (!AndroidUtils.isAndroidProject(project)) {
+            logger.warn("$project is not a Android project, skip apply to $project")
+            return
+        }
+
+
+        println 'Pin plugin version: v0.0.2'
+        println "apply to -> $project"
+
+        applyPlugin(project)
+    }
+
+    private void applyPlugin(Project project) {
+        BaseExtension android = project.extensions.getByName("android")
+
+        def androidVariant
+        if (AndroidUtils.isAndroidAppProject(project)) {
+            androidVariant = android.applicationVariants
+        } else if (AndroidUtils.isAndroidLibProject(project)) {
+            androidVariant = android.libraryVariants
+        } else {
             return
         }
 
         PinModeExtension extension = project.extensions.create("pinModeConfig", PinModeExtension)
-        BaseExtension android = project.extensions.getByType(BaseExtension)
-
         def moduleDirs = project.projectDir.listFiles()
                 .findAll {
             def name = it.name
@@ -39,75 +62,69 @@ class PinModePlugin extends AndroidBasePlugin {
             it.isDirectory() && extension.modulePrefix.any { name.startsWith(it) }
         }
 
-
-        Set<File> manifestSet = new HashSet<>()
-        def sourceSetConf = { AndroidSourceSet sourceSet ->
-            moduleDirs.each {
-                def dir = "${it.name}/src/${sourceSet.name}"
-
-                sourceSet.assets.srcDirs "${dir}/assets"
-                sourceSet.java.srcDirs "${dir}/java"
-                sourceSet.res.srcDirs "${dir}/res"
-                sourceSet.aidl.srcDirs "${dir}/aidl"
-
-                // each AndroidManifest.xml
-                def manifestFile = project.file("${dir}/AndroidManifest.xml")
-
-                if (manifestFile != null && manifestFile.exists()) {
-                    manifestSet.add(manifestFile)
-                }
-            }
-        }
-
         // for default main sources
-        sourceSetConf(android.sourceSets.main)
-
-        // for buildType sources
-        android.buildTypes.each {
-            def buildType = it.name
-            android.sourceSets.getByName(buildType) {
-                sourceSetConf(it)
-            }
-        }
-
-        // for flavor sources
-        android.productFlavors.each {
-            def flavor = it.name
-            android.sourceSets.getByName(flavor) {
-                sourceSetConf(it)
-            }
-        }
-
-        println manifestSet
-
-        def baseVariant
-        if (isAndroidAppProject(project)) {
-            AppExtension appExtension = project.extensions.getByType(AppExtension)
-            baseVariant = appExtension.applicationVariants
-        } else if (isAndroidLibProject(project)) {
-            LibraryExtension libraryExtension = project.extensions.getByType(LibraryExtension)
-            baseVariant = libraryExtension.libraryVariants
-        } else {
-            return
-        }
+        sourceSetConf(android.sourceSets.main, moduleDirs, null)
 
         // traversal all variant
-        baseVariant.all { variant ->
-            String variantName = variant.name.capitalize()
-            ManifestProcessorTask processManifestTask = project.tasks["process${variantName}Manifest"]
-            processManifestTask.outputs.upToDateWhen { false }
+        androidVariant.all { variant ->
+            Set<File> manifestSet = new HashSet<>()
 
-            processManifestTask.doLast {
-                def mainManifest = new File(processManifestTask.manifestOutputDirectory, "AndroidManifest.xml")
-
-                def reportFile = new File(project.buildDir, "outputs/logs/final-manifest-merger-${variant.flavorName}-${variant.buildType.name}-report.txt")
-                if (!reportFile.exists()) {
-                    reportFile.createNewFile()
-                }
-
-                def libManifests = manifestSet as File[]
-                merge(reportFile, mainManifest, libManifests)
+            // for buildType sources, never empty
+            def buildType = variant.buildType
+            android.sourceSets.getByName(buildType.name) {
+                sourceSetConf(it, moduleDirs, manifestSet)
             }
+
+            // for flavor sources， maybe empty
+            if (variant.flavorName) {
+                android.sourceSets.getByName(variant.flavorName) {
+                    sourceSetConf(it, moduleDirs, manifestSet)
+                }
+            }
+
+            processManifest(variant, manifestSet)
+        }
+    }
+
+    def sourceSetConf(AndroidSourceSet sourceSet, List<File> moduleDirs, Set<File> manifestSet) {
+        moduleDirs.each {
+            def dir = "${it.name}/src/${sourceSet.name}"
+
+            sourceSet.assets.srcDirs += "$dir/assets"
+            sourceSet.java.srcDirs += "$dir/java"
+            sourceSet.res.srcDirs += "$dir/res"
+            sourceSet.aidl.srcDirs += "$dir/aidl"
+            sourceSet.jni.srcDirs += "$dir/jni"
+            sourceSet.jniLibs.srcDirs += "$dir/jniLibs"
+            sourceSet.renderscript.srcDirs += "$dir/renderscript"
+
+            // each AndroidManifest.xml
+            def manifestFile = project.file("$dir/AndroidManifest.xml")
+
+            if (manifestFile != null && manifestFile.exists()) {
+                manifestSet?.add(manifestFile)
+            }
+        }
+    }
+
+    def processManifest(BaseVariant variant, Set<File> manifestSet) {
+        String variantName = variant.name.capitalize()
+        ManifestProcessorTask processManifestTask = project.tasks["process${variantName}Manifest"]
+        processManifestTask.outputs.upToDateWhen { false }
+
+        processManifestTask.doLast {
+            def mainManifest = new File(processManifestTask.manifestOutputDirectory, "AndroidManifest.xml")
+
+            println "main AndroidManifest -> $mainManifest"
+            println "split AndroidManifest -> $manifestSet"
+
+            def reportFile = new File(project.buildDir, "outputs/logs/final-manifest-merger-${variant.flavorName}-${variant.buildType.name}-report.txt")
+            if (!reportFile.exists()) {
+                reportFile.createNewFile()
+            }
+
+            def libManifests = manifestSet as File[]
+            merge(reportFile, mainManifest, libManifests)
         }
     }
 
@@ -139,7 +156,7 @@ class PinModePlugin extends AndroidBasePlugin {
                 try {
                     String annotatedDocument = mergingReport.getActions().blame(xmlDocument)
 
-                    logger.verbose(annotatedDocument)
+//                    logger.verbose(annotatedDocument)
                 } catch (Exception e) {
                     logger.error(e, "cannot print resulting xml")
                 }
@@ -160,15 +177,4 @@ class PinModePlugin extends AndroidBasePlugin {
         }
     }
 
-    static boolean isAndroidProject(Project project) {
-        isAndroidAppProject(project) || isAndroidLibProject(project)
-    }
-
-    static boolean isAndroidAppProject(Project project) {
-        project.plugins.hasPlugin("com.android.application")
-    }
-
-    static boolean isAndroidLibProject(Project project) {
-        project.plugins.hasPlugin("com.android.library")
-    }
 }
