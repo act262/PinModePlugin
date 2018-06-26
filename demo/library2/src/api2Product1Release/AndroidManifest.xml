@@ -1,0 +1,12 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.jfz.library2">
+
+
+    <application>
+
+        <meta-data
+            android:name="library2-src-api2-product1-release"
+            android:value="library2-src-api2-product1-release" />
+
+    </application>
+</manifest>

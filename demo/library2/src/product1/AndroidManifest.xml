@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.jfz.library2">
+
+
+    <application>
+
+        <meta-data
+            android:name="library2-src-product1"
+            android:value="library2-src-product1" />
+
+        <meta-data
+            android:name="Channel"
+            android:value="${Channel}" />
+    </application>
+</manifest>

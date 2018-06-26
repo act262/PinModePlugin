@@ -66,8 +66,6 @@ class PinModePlugin extends AndroidBasePlugin {
 
         // traversal all variant
         variants.all { variant ->
-            println "$variant.name -> $variant.buildType.name + $variant.flavorName ========= $variant.baseName"
-
             Set<File> manifestSet = new HashSet<>()
 
             // for buildType sources, never empty
