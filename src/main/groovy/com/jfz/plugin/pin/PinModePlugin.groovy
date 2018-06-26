@@ -46,7 +46,7 @@ class PinModePlugin extends AndroidBasePlugin {
             return
         }
 
-        println 'Pin plugin version: v0.0.3'
+        println 'Pin plugin version: v0.0.4'
         println "apply to -> $project"
 
         applyPlugin(extension, variants)
@@ -61,12 +61,12 @@ class PinModePlugin extends AndroidBasePlugin {
             it.isDirectory() && extension.modulePrefix.any { name.startsWith(it) }
         }
 
-        // for default main sources
-        sourceSetConf(android.sourceSets.main, moduleDirs, null)
-
         // traversal all variant
         variants.all { variant ->
             Set<File> manifestSet = new HashSet<>()
+
+            // for default main sources, never empty
+            sourceSetConf(android.sourceSets.main, moduleDirs, manifestSet)
 
             // for buildType sources, never empty
             def buildType = variant.buildType
