@@ -84,6 +84,13 @@ class PinModePlugin extends AndroidBasePlugin {
                 android.sourceSets.getByName(variant.name) {
                     sourceSetConf(it, moduleDirs, manifestSet)
                 }
+
+                // for each single flavor
+                variant.productFlavors.each { flavor ->
+                    android.sourceSets.getByName(flavor.name) {
+                        sourceSetConf(it, moduleDirs, manifestSet)
+                    }
+                }
             }
 
             processManifest(variant, manifestSet)

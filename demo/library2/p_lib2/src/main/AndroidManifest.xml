@@ -5,8 +5,8 @@
     <application>
 
         <meta-data
-            android:name="library2-lib2"
-            android:value="library2-lib2" />
+            android:name="library2-lib2-main"
+            android:value="library2-lib2-main" />
 
     </application>
 </manifest>
