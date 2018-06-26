@@ -1,6 +1,8 @@
 package com.jfz.plugin.pin
 
+import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.AndroidBasePlugin
 import com.android.build.gradle.api.AndroidSourceSet
 import com.android.build.gradle.api.BaseVariant
@@ -16,6 +18,7 @@ import com.android.utils.StdLogger.Level
 import com.google.common.base.Charsets
 import com.google.common.io.Files
 import com.jfz.plugin.pin.util.AndroidUtils
+import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.jetbrains.annotations.NotNull
@@ -30,30 +33,26 @@ class PinModePlugin extends AndroidBasePlugin {
         this.project = project
         Logger logger = project.logger
 
-        if (!AndroidUtils.isAndroidProject(project)) {
+        BaseExtension extension
+        def variants
+        if (AndroidUtils.isAndroidAppProject(project)) {
+            extension = project.extensions.getByName("android") as AppExtension
+            variants = extension.applicationVariants
+        } else if (AndroidUtils.isAndroidLibProject(project)) {
+            extension = project.extensions.getByName("android") as LibraryExtension
+            variants = extension.libraryVariants
+        } else {
             logger.warn("$project is not a Android project, skip apply to $project")
             return
         }
 
-
-        println 'Pin plugin version: v0.0.2'
+        println 'Pin plugin version: v0.0.3'
         println "apply to -> $project"
 
-        applyPlugin(project)
+        applyPlugin(extension, variants)
     }
 
-    private void applyPlugin(Project project) {
-        BaseExtension android = project.extensions.getByName("android")
-
-        def androidVariant
-        if (AndroidUtils.isAndroidAppProject(project)) {
-            androidVariant = android.applicationVariants
-        } else if (AndroidUtils.isAndroidLibProject(project)) {
-            androidVariant = android.libraryVariants
-        } else {
-            return
-        }
-
+    private void applyPlugin(BaseExtension android, DomainObjectSet<BaseVariant> variants) {
         PinModeExtension extension = project.extensions.create("pinModeConfig", PinModeExtension)
         def moduleDirs = project.projectDir.listFiles()
                 .findAll {
@@ -66,7 +65,9 @@ class PinModePlugin extends AndroidBasePlugin {
         sourceSetConf(android.sourceSets.main, moduleDirs, null)
 
         // traversal all variant
-        androidVariant.all { variant ->
+        variants.all { variant ->
+            println "$variant.name -> $variant.buildType.name + $variant.flavorName ========= $variant.baseName"
+
             Set<File> manifestSet = new HashSet<>()
 
             // for buildType sources, never empty
@@ -78,6 +79,11 @@ class PinModePlugin extends AndroidBasePlugin {
             // for flavor sources， maybe empty
             if (variant.flavorName) {
                 android.sourceSets.getByName(variant.flavorName) {
+                    sourceSetConf(it, moduleDirs, manifestSet)
+                }
+
+                // for buildType+flavor sources
+                android.sourceSets.getByName(variant.name) {
                     sourceSetConf(it, moduleDirs, manifestSet)
                 }
             }
@@ -118,7 +124,7 @@ class PinModePlugin extends AndroidBasePlugin {
             println "main AndroidManifest -> $mainManifest"
             println "split AndroidManifest -> $manifestSet"
 
-            def reportFile = new File(project.buildDir, "outputs/logs/final-manifest-merger-${variant.flavorName}-${variant.buildType.name}-report.txt")
+            def reportFile = new File(project.buildDir, "outputs/logs/final-manifest-merger-${variant.baseName}-report.txt")
             if (!reportFile.exists()) {
                 reportFile.createNewFile()
             }
