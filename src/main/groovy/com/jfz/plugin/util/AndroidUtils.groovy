@@ -1,4 +1,4 @@
-package com.jfz.plugin.pin.util
+package com.jfz.plugin.util
 
 import org.gradle.api.Project
 

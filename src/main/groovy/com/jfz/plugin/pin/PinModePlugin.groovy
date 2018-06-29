@@ -7,17 +7,8 @@ import com.android.build.gradle.api.AndroidBasePlugin
 import com.android.build.gradle.api.AndroidSourceSet
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.tasks.ManifestProcessorTask
-import com.android.manifmerger.ManifestMerger2
-import com.android.manifmerger.ManifestMerger2.Invoker
-import com.android.manifmerger.ManifestMerger2.MergeType
-import com.android.manifmerger.MergingReport
-import com.android.manifmerger.XmlDocument
-import com.android.utils.ILogger
-import com.android.utils.StdLogger
-import com.android.utils.StdLogger.Level
-import com.google.common.base.Charsets
-import com.google.common.io.Files
-import com.jfz.plugin.pin.util.AndroidUtils
+import com.jfz.plugin.util.AndroidUtils
+import com.jfz.plugin.util.ManifestUtils
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
@@ -130,59 +121,13 @@ class PinModePlugin extends AndroidBasePlugin {
         processManifestTask.doLast {
             def mainManifest = new File(processManifestTask.manifestOutputDirectory, "AndroidManifest.xml")
 
-            println "main AndroidManifest -> $mainManifest"
-            println "split AndroidManifest -> $manifestSet"
-
             def reportFile = new File(project.buildDir, "outputs/logs/final-manifest-merger-${variant.baseName}-report.txt")
             if (!reportFile.exists()) {
                 reportFile.createNewFile()
             }
 
             def libManifests = manifestSet as File[]
-            merge(reportFile, mainManifest, libManifests)
-        }
-    }
-
-    private static void merge(File reportFile, File mainManifest, File... libraryManifests) {
-        if (libraryManifests == null || libraryManifests.length == 0) {
-            return
-        }
-
-        ILogger logger = new StdLogger(Level.VERBOSE)
-        Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifest, logger, MergeType.APPLICATION)
-        manifestMergerInvoker.setMergeReportFile(reportFile)
-        manifestMergerInvoker.addLibraryManifests(libraryManifests)
-
-        MergingReport mergingReport = manifestMergerInvoker.merge()
-
-        switch (mergingReport.result) {
-            case MergingReport.Result.WARNING:
-                mergingReport.log(logger)
-                break
-
-            case MergingReport.Result.SUCCESS:
-                XmlDocument xmlDocument = mergingReport.getMergedXmlDocument(MergingReport.MergedManifestKind.MERGED)
-                try {
-                    String annotatedDocument = mergingReport.getActions().blame(xmlDocument)
-
-//                    logger.verbose(annotatedDocument)
-                } catch (Exception e) {
-                    logger.error(e, "cannot print resulting xml")
-                }
-                save(xmlDocument, mainManifest)
-                break
-
-            case MergingReport.Result.ERROR:
-            default:
-                throw new RuntimeException(mergingReport.getLoggingRecords())
-        }
-    }
-
-    private static void save(XmlDocument xmlDocument, File out) {
-        try {
-            Files.write(xmlDocument.prettyPrint(), out, Charsets.UTF_8)
-        } catch (IOException e) {
-            throw new RuntimeException(e)
+            ManifestUtils.merge(reportFile, mainManifest, libManifests)
         }
     }
 
