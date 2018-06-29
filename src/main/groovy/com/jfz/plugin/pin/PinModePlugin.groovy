@@ -27,11 +27,12 @@ import org.jetbrains.annotations.NotNull
 class PinModePlugin extends AndroidBasePlugin {
 
     private Project project
+    private Logger logger
 
     @Override
     void apply(@NotNull Project project) {
         this.project = project
-        Logger logger = project.logger
+        this.logger = project.logger
 
         BaseExtension extension
         def variants
@@ -42,23 +43,25 @@ class PinModePlugin extends AndroidBasePlugin {
             extension = project.extensions.getByName("android") as LibraryExtension
             variants = extension.libraryVariants
         } else {
-            logger.warn("$project is not a Android project, skip apply to $project")
+            this.logger.warn("$project is not a Android project, skip apply to $project")
             return
         }
-
-        println 'Pin plugin version: v0.0.5'
-        println "apply to -> $project"
 
         applyPlugin(extension, variants)
     }
 
     private void applyPlugin(BaseExtension android, DomainObjectSet<BaseVariant> variants) {
-        PinModeExtension extension = project.extensions.create("pinModeConfig", PinModeExtension)
+        PinModeExtension extension = project.extensions.create("pinMode", PinModeExtension)
         def moduleDirs = project.projectDir.listFiles()
                 .findAll {
             def name = it.name
             // filter all inner's module
             it.isDirectory() && extension.modulePrefix.any { name.startsWith(it) }
+        }
+
+        if (moduleDirs.isEmpty()) {
+            logger.quiet("modules directory is empty, skip it.")
+            return
         }
 
         // for default main sources, never empty, just apply once
@@ -150,13 +153,7 @@ class PinModePlugin extends AndroidBasePlugin {
         manifestMergerInvoker.setMergeReportFile(reportFile)
         manifestMergerInvoker.addLibraryManifests(libraryManifests)
 
-        println "start merge..."
-
         MergingReport mergingReport = manifestMergerInvoker.merge()
-
-        println "end merge..."
-
-        println(mergingReport.reportString)
 
         switch (mergingReport.result) {
             case MergingReport.Result.WARNING:
