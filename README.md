@@ -17,9 +17,6 @@
 ```groovy
 buildscript {
     repositories {
-        // 用于本地测试使用
-        mavenLocal()
-        
         jcenter()
     }
     dependencies {
@@ -80,14 +77,8 @@ android{
 但是每个sourceSets只能设置一个AndroidManifest文件，为了能够实现把AndroidManifest文件也可以像其他资源分散到具体目录下，就需要手动把这些合并起来。
 
 #### AndroidManifest合并
- 一开始想到的是在sourceSets里面把指定的AndroidManifest文件hack进去，
- `ManifestProcessorTask`
- `MergeManifests`
- `ProcessManifest`
+参考AndroidManifest文件合并的代码实现(`ManifestMerger2`)。
 
- 操作下来还是不行，
 
- 最后参考了AndroidManifest文件合并的代码实现(`ManifestMerger2`)。
-
- 最后项目结构如图
- ![k](sourcesSets.jpg)
+### 最后项目结构如图
+ ![k](image/sourcesSets.jpg)
