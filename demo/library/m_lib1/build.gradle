@@ -1,0 +1,5 @@
+dependencies {
+    implementation fileTree(dir: 'm_lib1/libs', include: ['*.jar'])
+
+    api 'com.squareup.okhttp3:okhttp:3.10.0'
+}

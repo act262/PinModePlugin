@@ -55,6 +55,10 @@ class PinModePlugin extends AndroidBasePlugin {
             return
         }
 
+        moduleDirs.each {
+            processBuildFile(it)
+        }
+
         // for default main sources, never empty, just apply once
         Set<File> mainManifestSet = new HashSet<>()
         sourceSetConf(android.sourceSets.main, moduleDirs, mainManifestSet)
@@ -89,6 +93,13 @@ class PinModePlugin extends AndroidBasePlugin {
             }
 
             processManifest(variant, manifestSet)
+        }
+    }
+
+    def processBuildFile(File moduleDir) {
+        def buildFile = new File(moduleDir, 'build.gradle')
+        if (buildFile && buildFile.exists()) {
+            project.apply([from: buildFile])
         }
     }
 

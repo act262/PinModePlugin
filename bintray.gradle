@@ -1,7 +1,3 @@
-group 'com.jfz.plugin'
-version '0.0.6'
-
-def artifactName = 'pin-plugin'
 
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
@@ -15,7 +11,7 @@ publishing {
             artifact javadocJar
 
             groupId project.group
-            artifactId artifactName
+            artifactId project.name
             version project.version
         }
     }
@@ -28,7 +24,7 @@ bintray {
 
     pkg {
         repo = 'maven'
-        name = artifactName
+        name = project.name
         desc = 'The plugin can use multiple AndroidSourceSet'
         licenses = ['Apache-2.0']
         websiteUrl = 'https://github.com/act262/PinModePlugin'

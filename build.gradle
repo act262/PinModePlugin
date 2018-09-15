@@ -8,6 +8,9 @@ plugins {
     id "com.jfrog.bintray" version "1.8.1"
 }
 
+group = plugin_group
+version = plugin_version
+
 apply plugin: 'groovy'
 apply from: 'bintray.gradle'
 
