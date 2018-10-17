@@ -43,11 +43,24 @@ class PinModePlugin extends AndroidBasePlugin {
 
     private void applyPlugin(BaseExtension android, DomainObjectSet<BaseVariant> variants) {
         PinModeExtension extension = project.extensions.create("pinMode", PinModeExtension)
-        def moduleDirs = project.projectDir.listFiles()
-                .findAll {
-            def name = it.name
-            // filter all inner's module
-            it.isDirectory() && extension.modulePrefix.any { name.startsWith(it) }
+
+        def moduleDirs = project.projectDir.listFiles(new FileFilter() {
+            @Override
+            boolean accept(File pathname) {
+                // filter all directory
+                return pathname.isDirectory()
+            }
+        }) as List<File>
+
+        // 1. add filter match pattern
+        moduleDirs = moduleDirs.findAll {
+            return it.name.matches(extension.defaultPattern) ||
+                    (extension.pattern != null && pathname.name.matches(extension.pattern))
+        }
+
+        // 2. add custom's include
+        extension.include.each {
+            moduleDirs.add(project.file(it))
         }
 
         if (moduleDirs.isEmpty()) {

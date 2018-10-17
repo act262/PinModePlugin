@@ -1,14 +1,12 @@
 [ ![Download](https://api.bintray.com/packages/act262/maven/pin-plugin/images/download.svg) ](https://bintray.com/act262/maven/pin-plugin/_latestVersion)
 
-### pin模式
-起初看到微信架构的演进里提到`pin`模式，在同一个module下把各个模块代码单独出来放置。为什么不用传统的module来做？因为module多了以后编译速度会变慢，利用sourceSets这个属性可以把不同模块下的代码组织起来，相当于还是只有一个module，编译速度不受影响。
-
-#### FEATURE
+#### FEATURES
 - [x] 原始代码结构，include kotlin
 - [x] module下分模块放置代码， 支持`AndroidManifest`下的节点自动合并
 - [x] 支持多productFlavor组合的源码结构 
-- [ ] 自定义模块匹配配置
+- [x] 自定义模块匹配配置规则
 - [ ] 代码边界控制
+- [ ] 模块内嵌模块
 
 ### 使用
 **使用环境 `Android gradle plugin 3.1.1`, `gradle 4.4`,`AndroidStudio 3.+`**
@@ -49,35 +47,9 @@ subprojects {
 
 然后代码结构参考demo上的结构即可
 
-> 当前匹配以`m_`,`p_`前缀的目录作为模块目录
+> 当前默认匹配以`m_`,`p_`,`c_`前缀的目录作为模块目录
 
 ---
-
-### 实现
-gradle 默认配置中可以对源码位置配置修改
-```groovy
-
-android{
-    // ...
-    
-    def dir = "xxx/yyy"
-    sourceSets {
-
-        main {
-            assets.srcDirs "${dir}/assets"
-            java.srcDirs "${dir}/java"
-            res.srcDirs "${dir}/res"
-            aidl.srcDirs "${dir}/aidl"
-            manifest.srcFile "$dir/AndroidManifest.xml"
-        }
-    }
-}
-```
-
-但是每个sourceSets只能设置一个AndroidManifest文件，为了能够实现把AndroidManifest文件也可以像其他资源分散到具体目录下，就需要手动把这些合并起来。
-
-#### AndroidManifest合并
-参考AndroidManifest文件合并的代码实现(`ManifestMerger2`)。
 
 
 ### 最后项目结构如图
