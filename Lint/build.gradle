@@ -1,0 +1,23 @@
+apply plugin: 'java-library'
+
+repositories {
+    google()
+    jcenter()
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    compileOnly 'com.android.tools.build:gradle:3.2.0'
+    compileOnly 'com.android.tools.lint:lint-api:26.2.0'
+    compileOnly 'com.android.tools.lint:lint-checks:26.2.0'
+}
+
+sourceCompatibility = "8"
+targetCompatibility = "8"
+
+jar {
+    manifest {
+        attributes('Lint-Registry': 'com.jfz.lint.Registry')
+    }
+}

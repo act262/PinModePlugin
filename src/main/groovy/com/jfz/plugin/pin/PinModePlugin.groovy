@@ -3,19 +3,19 @@ package com.jfz.plugin.pin
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
-import com.android.build.gradle.api.AndroidBasePlugin
 import com.android.build.gradle.api.AndroidSourceSet
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.tasks.ManifestProcessorTask
 import com.jfz.plugin.util.AndroidUtils
 import com.jfz.plugin.util.ManifestUtils
 import org.gradle.api.DomainObjectSet
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.jetbrains.annotations.NotNull
 
 // multiple source arch
-class PinModePlugin extends AndroidBasePlugin {
+class PinModePlugin implements Plugin<Project> {
 
     private Project project
     private Logger logger

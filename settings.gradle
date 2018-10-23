@@ -1,1 +1,2 @@
+include ':Lint'
 rootProject.name='pin-plugin'

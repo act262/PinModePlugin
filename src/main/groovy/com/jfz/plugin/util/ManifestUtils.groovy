@@ -13,7 +13,7 @@ class ManifestUtils {
             return
         }
 
-        ILogger logger = new StdLogger(StdLogger.Level.VERBOSE)
+        ILogger logger = new StdLogger(StdLogger.Level.ERROR)
         ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifest, logger, ManifestMerger2.MergeType.APPLICATION)
         manifestMergerInvoker.setMergeReportFile(reportFile)
         manifestMergerInvoker.addLibraryManifests(libraryManifests)
